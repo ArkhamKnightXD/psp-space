@@ -7,15 +7,15 @@
 
 PSP_MODULE_INFO("SDL-Starter", 0, 1, 0);
 PSP_MAIN_THREAD_ATTR(THREAD_ATTR_USER | THREAD_ATTR_VFPU);
- 
-int exitCallback(int arg1, int arg2, void* common) {
 
+int exitCallback(int arg1, int arg2, void *common)
+{
     sceKernelExitGame();
     return 0;
 }
 
-int callbackThread(SceSize args, void* argp) {
-
+int callbackThread(SceSize args, void *argp)
+{
     int cbid = sceKernelCreateCallback("Exit Callback", exitCallback, NULL);
     sceKernelRegisterExitCallback(cbid);
     sceKernelSleepThreadCB();
@@ -23,26 +23,26 @@ int callbackThread(SceSize args, void* argp) {
     return 0;
 }
 
-int setupCallbacks(void) {
-
+int setupCallbacks(void)
+{
     int thid = sceKernelCreateThread("update_thread", callbackThread, 0x11, 0xFA0, 0, 0);
-    if (thid >= 0) {
+    if (thid >= 0)
+    {
         sceKernelStartThread(thid, 0, 0);
     }
 
     return thid;
 }
 
-enum {
-  SCREEN_WIDTH  = 480,
-  SCREEN_HEIGHT = 272
+enum
+{
+    SCREEN_WIDTH = 480,
+    SCREEN_HEIGHT = 272
 };
 
-const int FRAME_RATE = 60;
-
-SDL_Window* window = NULL;
-SDL_Renderer* renderer = NULL;
-SDL_GameController* controller = NULL;
+SDL_Window *window = NULL;
+SDL_Renderer *renderer = NULL;
+SDL_GameController *controller = NULL;
 
 typedef struct
 {
@@ -62,6 +62,7 @@ typedef struct
     SDL_Texture *sprite;
     int lives;
     int speed;
+    int score;
 } Player;
 
 Player player;
@@ -98,12 +99,14 @@ SDL_Texture *loadSprite(const char *file)
 
 typedef struct
 {
+    float x;
+    float y;
     SDL_Rect bounds;
     SDL_Texture *sprite;
     int points;
     int velocity;
     bool isDestroyed;
-} Alien; 
+} Alien;
 
 std::vector<Alien> aliens;
 
@@ -130,25 +133,24 @@ std::vector<Alien> createAliens()
 
         switch (row)
         {
+            case 0:
+                actualSprite = alienSprite3;
+                break;
 
-        case 0:
-            actualSprite = alienSprite3;
-            break;
+            case 1:
+            case 2:
+                actualSprite = alienSprite2;
+                break;
 
-        case 1:
-        case 2:
-            actualSprite = alienSprite2;
-            break;
-
-        default:
-            actualSprite = alienSprite1;
+            default:
+                actualSprite = alienSprite1;
         }
 
         for (int columns = 0; columns < 13; columns++)
         {
             SDL_Rect alienBounds = {positionX, positionY, 20, 20};
 
-            Alien actualAlien = {alienBounds, actualSprite, alienPoints, 100, false};
+            Alien actualAlien = {(float)positionX, (float)positionY, alienBounds, actualSprite, alienPoints, 100, false};
 
             aliens.push_back(actualAlien);
             positionX += 30;
@@ -176,7 +178,6 @@ void aliensMovement(float deltaTime)
         }
     }
 
-    // It moves faster when going to the left.
     if (shouldChangeVelocity)
     {
         for (Alien &alien : aliens)
@@ -191,7 +192,8 @@ void aliensMovement(float deltaTime)
     {
         for (Alien &alien : aliens)
         {
-            alien.bounds.y += 5;
+            alien.y += 250 * deltaTime;
+            alien.bounds.y = alien.y;
         }
 
         shouldAliensGoDown = false;
@@ -199,7 +201,8 @@ void aliensMovement(float deltaTime)
 
     for (Alien &alien : aliens)
     {
-        alien.bounds.x += alien.velocity * deltaTime;
+        alien.x += alien.velocity * deltaTime;
+        alien.bounds.x = alien.x;
     }
 }
 
@@ -216,7 +219,8 @@ void aliensMovement(float deltaTime)
 //     return sound;
 // }
 
-void quitGame() {
+void quitGame()
+{
 
     SDL_GameControllerClose(controller);
     SDL_DestroyRenderer(renderer);
@@ -224,14 +228,17 @@ void quitGame() {
     SDL_Quit();
 }
 
-void handleEvents() {
+void handleEvents()
+{
 
     SDL_Event event;
 
-    while (SDL_PollEvent(&event)) {
+    while (SDL_PollEvent(&event))
+    {
 
-        if (event.type == SDL_QUIT) {
-            
+        if (event.type == SDL_QUIT)
+        {
+
             quitGame();
             exit(0);
         }
@@ -264,7 +271,8 @@ void checkCollisionBetweenStructureAndLaser(Laser &laser)
     }
 }
 
-void removingDestroyedElements() {
+void removingDestroyedElements()
+{
 
     for (auto iterator = aliens.begin(); iterator != aliens.end();)
     {
@@ -302,16 +310,19 @@ void removingDestroyedElements() {
         }
     }
 }
- 
-void update(float deltaTime) {
+
+void update(float deltaTime)
+{
 
     SDL_GameControllerUpdate();
 
-    if (SDL_GameControllerGetButton(controller, SDL_CONTROLLER_BUTTON_DPAD_LEFT) && player.bounds.x > 0) {
+    if (SDL_GameControllerGetButton(controller, SDL_CONTROLLER_BUTTON_DPAD_LEFT) && player.bounds.x > 0)
+    {
         player.bounds.x -= player.speed * deltaTime;
     }
 
-    else if (SDL_GameControllerGetButton(controller, SDL_CONTROLLER_BUTTON_DPAD_RIGHT) && player.bounds.x < SCREEN_WIDTH - player.bounds.w) {
+    else if (SDL_GameControllerGetButton(controller, SDL_CONTROLLER_BUTTON_DPAD_RIGHT) && player.bounds.x < SCREEN_WIDTH - player.bounds.w)
+    {
         player.bounds.x += player.speed * deltaTime;
     }
 
@@ -368,7 +379,7 @@ void update(float deltaTime) {
         {
             laser.isDestroyed = true;
 
-            // player.score += mysteryShip.points;
+            player.score += mysteryShip.points;
 
             mysteryShip.isDestroyed = true;
 
@@ -382,7 +393,7 @@ void update(float deltaTime) {
                 alien.isDestroyed = true;
                 laser.isDestroyed = true;
 
-                // player.score += alien.points;
+                player.score += alien.points;
 
                 // Mix_PlayChannel(-1, explosionSound, 0);
             }
@@ -492,48 +503,47 @@ void render()
     SDL_RenderPresent(renderer);
 }
 
-void capFrameRate(Uint32 frameStartTime) {
-
-    Uint32 frameTime = SDL_GetTicks() - frameStartTime;
-    
-    if (frameTime < 1000 / FRAME_RATE) {
-        SDL_Delay(1000 / FRAME_RATE - frameTime);
-    }
-}
-
-int main() {
+int main()
+{
 
     setupCallbacks();
     pspDebugScreenInit();
 
-    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER) < 0) {
+    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER) < 0)
+    {
         return -1;
     }
 
-    if ((window = SDL_CreateWindow("Space", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, 0)) == NULL) {
+    if ((window = SDL_CreateWindow("Space", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, 0)) == NULL)
+    {
         return -1;
     }
 
-    if ((renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC)) == NULL) {
+    if ((renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC)) == NULL)
+    {
         return -1;
     }
 
-    if (SDL_NumJoysticks() < 1) {
+    if (SDL_NumJoysticks() < 1)
+    {
         pspDebugScreenPrintf("no game controller");
         return -1;
-    } 
-    
-    else {
+    }
+
+    else
+    {
 
         controller = SDL_GameControllerOpen(0);
-        if (controller == NULL) {
+        if (controller == NULL)
+        {
 
             pspDebugScreenPrintf("unable to open game controller");
             return -1;
         }
     }
 
-    if (!IMG_Init(IMG_INIT_PNG)){
+    if (!IMG_Init(IMG_INIT_PNG))
+    {
         return -1;
     }
 
@@ -557,7 +567,7 @@ int main() {
 
     SDL_Rect playerBounds = {SCREEN_WIDTH / 2, SCREEN_HEIGHT - 20, 22, 14};
 
-    player = {playerBounds, playerSprite, 2, 300};
+    player = {playerBounds, playerSprite, 2, 300, 0};
 
     SDL_Rect structureBounds = {60, SCREEN_HEIGHT - 60, 28, 17};
     SDL_Rect structureBounds2 = {175, SCREEN_HEIGHT - 60, 28, 17};
@@ -588,8 +598,6 @@ int main() {
         handleEvents();
         update(deltaTime);
         render();
-
-        capFrameRate(currentFrameTime);
     }
 
     quitGame();
