@@ -1,4 +1,4 @@
-TARGET = SDL-STARTER
+TARGET = SDL-SPACE
 OBJS := $(patsubst src/%.cpp,src/%.o,$(wildcard src/*.cpp))
 
 CFLAGS =
@@ -20,7 +20,7 @@ PSP_FW_VERSION = 500
 BUILD_PRX = 1
 
 EXTRA_TARGETS = EBOOT.PBP
-PSP_EBOOT_TITLE = SDL-STARTER
+PSP_EBOOT_TITLE = SDL-SPACE
 
 PSPSDK=$(shell psp-config --pspsdk-path)
 include $(PSPSDK)/lib/build.mak

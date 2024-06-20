@@ -5,7 +5,7 @@
 #include <pspdebug.h>
 #include <pspkernel.h>
 
-PSP_MODULE_INFO("SDL-Starter", 0, 1, 0);
+PSP_MODULE_INFO("SDL-SPACE", 0, 1, 0);
 PSP_MAIN_THREAD_ATTR(THREAD_ATTR_USER | THREAD_ATTR_VFPU);
 
 int exitCallback(int arg1, int arg2, void *common)
@@ -150,7 +150,7 @@ std::vector<Alien> createAliens()
         {
             SDL_Rect alienBounds = {positionX, positionY, 20, 20};
 
-            Alien actualAlien = {(float)positionX, (float)positionY, alienBounds, actualSprite, alienPoints, 100, false};
+            Alien actualAlien = {(float)positionX, (float)positionY, alienBounds, actualSprite, alienPoints, 50, false};
 
             aliens.push_back(actualAlien);
             positionX += 30;
