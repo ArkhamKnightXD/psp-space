@@ -1,27 +1,57 @@
-# SDL2 Example for PSP
+# PSP - VITA SDL2 Example
 
-This example demonstrates the use of SDL2 in PSP development. SDL2 provides a robust framework for managing graphics, sound, input, and more, making it a valuable tool for PSP game development.
+The app was purposely made to work on both PC and PSP, to have a bit of an idea of what should be happening and if the code is alright.
 
-## Resources
-- SDL2 is officially supported: [libsdl wiki entry](https://wiki.libsdl.org/SDL2/README/psp)
-- SDL2 GitHub Repository: [libsdl-org/SDL2 branch](https://github.com/libsdl-org/SDL/tree/SDL2)
+## Building
 
-## How to Build
+### PSP
 
-To get started, you need to have the PSPSDK installed. Follow the instructions at [PSPSDK on GitHub](https://github.com/pspdev/pspdev) to install it.
+```
+mkdir psp && cd psp
+psp-cmake -DBUILD_PRX=1 ..
+make
+```
 
-Building the project is straightforward. Use the following `make` commands:
-- `make` to build the project.
-- `make rebuild` to rebuild the project.
-- `make clean` to clean up the build files.
+### PC
 
-## How to Debug on Real Hardware
+```
+mkdir build && cd build
+cmake ..
+make
+```
 
-For debugging on a real PSP device, follow these steps:
+### VITA
 
-1. Build the project with `make debug` to create a debug build.
-2. Utilize [PSPLink](http://pspdev.github.io/psplinkusb/) to transmit your homebrew application to your PSP. PSPLink allows for real-time monitoring from your computer.
-3. With the debug build, you can effectively track exceptions. The tool `psp-addr2line` will assist you in locating the exact source file and line number where an exception occurred.
-4. Note: In some cases, it may be necessary to compile SDL2 from the source as a debug build, particularly if `libSDL2d` (the debug library) is missing.
+```
+mkdir vita && cd vita
+cmake -DCMAKE_TOOLCHAIN_FILE="${VITASDK}/share/vita.toolchain.cmake" ..
+make
+```
 
-This setup will provide an environment for both developing and debugging your SDL2 applications on the PSP.
+## License
+
+To the code the Unlicense applies. To the font files the following MIT license applies:
+
+```
+MIT License
+
+Copyright (c) 2019 Axel Wikström
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+```

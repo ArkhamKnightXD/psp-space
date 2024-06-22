@@ -1,48 +1,19 @@
-#define SDL_MAIN_HANDLED
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
+#include <SDL2/SDL_mixer.h>
+#include <SDL2/SDL_ttf.h>
+#include <iostream>
 #include <vector>
-#include <pspdebug.h>
-#include <pspkernel.h>
 
-PSP_MODULE_INFO("SDL-SPACE", 0, 1, 0);
-PSP_MAIN_THREAD_ATTR(THREAD_ATTR_USER | THREAD_ATTR_VFPU);
-
-int exitCallback(int arg1, int arg2, void *common)
-{
-    sceKernelExitGame();
-    return 0;
-}
-
-int callbackThread(SceSize args, void *argp)
-{
-    int cbid = sceKernelCreateCallback("Exit Callback", exitCallback, NULL);
-    sceKernelRegisterExitCallback(cbid);
-    sceKernelSleepThreadCB();
-
-    return 0;
-}
-
-int setupCallbacks(void)
-{
-    int thid = sceKernelCreateThread("update_thread", callbackThread, 0x11, 0xFA0, 0, 0);
-    if (thid >= 0)
-    {
-        sceKernelStartThread(thid, 0, 0);
-    }
-
-    return thid;
-}
-
-enum
-{
-    SCREEN_WIDTH = 480,
-    SCREEN_HEIGHT = 272
-};
+const int SCREEN_WIDTH = 480;
+const int SCREEN_HEIGHT = 272;
 
 SDL_Window *window = NULL;
 SDL_Renderer *renderer = NULL;
 SDL_GameController *controller = NULL;
+
+Mix_Chunk *laserSound = nullptr;
+Mix_Chunk *explosionSound = nullptr;
 
 typedef struct
 {
@@ -115,9 +86,9 @@ bool shouldAliensGoDown = false;
 
 std::vector<Alien> createAliens()
 {
-    SDL_Texture *alienSprite1 = loadSprite("sprites/alien_1.png");
-    SDL_Texture *alienSprite2 = loadSprite("sprites/alien_2.png");
-    SDL_Texture *alienSprite3 = loadSprite("sprites/alien_3.png");
+    SDL_Texture *alienSprite1 = loadSprite("alien_1.png");
+    SDL_Texture *alienSprite2 = loadSprite("alien_2.png");
+    SDL_Texture *alienSprite3 = loadSprite("alien_3.png");
 
     std::vector<Alien> aliens;
 
@@ -206,18 +177,18 @@ void aliensMovement(float deltaTime)
     }
 }
 
-// Mix_Chunk *loadSound(const char *p_filePath)
-// {
-//     Mix_Chunk *sound = nullptr;
+Mix_Chunk *loadSound(const char *p_filePath)
+{
+    Mix_Chunk *sound = nullptr;
 
-//     sound = Mix_LoadWAV(p_filePath);
-//     if (sound == nullptr)
-//     {
-//         printf("Failed to load scratch sound effect! SDL_mixer Error: %s\n", Mix_GetError());
-//     }
+    sound = Mix_LoadWAV(p_filePath);
+    if (sound == nullptr)
+    {
+        printf("Failed to load scratch sound effect! SDL_mixer Error: %s\n", Mix_GetError());
+    }
 
-//     return sound;
-// }
+    return sound;
+}
 
 void quitGame()
 {
@@ -266,7 +237,7 @@ void checkCollisionBetweenStructureAndLaser(Laser &laser)
                 structure.isDestroyed = true;
             }
 
-            // Mix_PlayChannel(-1, explosionSound, 0);
+            Mix_PlayChannel(-1, explosionSound, 0);
         }
     }
 }
@@ -361,7 +332,7 @@ void update(float deltaTime)
 
             lastTimePlayerShoot = 0;
 
-            // Mix_PlayChannel(-1, laserSound, 0);
+            Mix_PlayChannel(-1, laserSound, 0);
         }
     }
 
@@ -378,12 +349,12 @@ void update(float deltaTime)
         if (!mysteryShip.isDestroyed && hasCollision(mysteryShip.bounds, laser.bounds))
         {
             laser.isDestroyed = true;
-
+        
             player.score += mysteryShip.points;
 
             mysteryShip.isDestroyed = true;
 
-            // Mix_PlayChannel(-1, explosionSound, 0);
+            Mix_PlayChannel(-1, explosionSound, 0);
         }
 
         for (Alien &alien : aliens)
@@ -395,7 +366,7 @@ void update(float deltaTime)
 
                 player.score += alien.points;
 
-                // Mix_PlayChannel(-1, explosionSound, 0);
+                Mix_PlayChannel(-1, explosionSound, 0);
             }
         }
 
@@ -416,7 +387,7 @@ void update(float deltaTime)
 
         lastTimeAliensShoot = 0;
 
-        // Mix_PlayChannel(-1, laserSound, 0);
+        Mix_PlayChannel(-1, laserSound, 0);
     }
 
     for (Laser &laser : alienLasers)
@@ -435,7 +406,7 @@ void update(float deltaTime)
 
             player.lives--;
 
-            // Mix_PlayChannel(-1, explosionSound, 0);
+            Mix_PlayChannel(-1, explosionSound, 0);
         }
 
         checkCollisionBetweenStructureAndLaser(laser);
@@ -503,59 +474,61 @@ void render()
     SDL_RenderPresent(renderer);
 }
 
-int main()
+int main(int argc, char *args[])
 {
-
-    setupCallbacks();
-    pspDebugScreenInit();
-
-    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_GAMECONTROLLER) < 0)
+    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_GAMECONTROLLER) < 0)
     {
-        return -1;
+        std::cout << "SDL crashed. Error: " << SDL_GetError();
+        return 1;
     }
 
-    if ((window = SDL_CreateWindow("Space", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, 0)) == NULL)
+    window = SDL_CreateWindow("My Window", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
+    if (window == nullptr)
     {
-        return -1;
+        std::cerr << "Failed to create window: " << SDL_GetError() << std::endl;
+        SDL_Quit();
+        return 1;
     }
 
-    if ((renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC)) == NULL)
+    renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+    if (renderer == nullptr)
     {
-        return -1;
+        std::cerr << "Failed to create renderer: " << SDL_GetError() << std::endl;
+        SDL_DestroyWindow(window);
+        SDL_Quit();
+        return 1;
     }
 
-    if (SDL_NumJoysticks() < 1)
-    {
-        pspDebugScreenPrintf("no game controller");
+    if (SDL_NumJoysticks() < 1) {
+        printf("No game controllers connected!\n");
         return -1;
-    }
-
-    else
-    {
+    } 
+    else {
 
         controller = SDL_GameControllerOpen(0);
-        if (controller == NULL)
-        {
+        if (controller == NULL) {
 
-            pspDebugScreenPrintf("unable to open game controller");
+            printf("Unable to open game controller! SDL Error: %s\n", SDL_GetError());
             return -1;
         }
     }
 
     if (!IMG_Init(IMG_INIT_PNG))
     {
-        return -1;
+        std::cout << "SDL_image crashed. Error: " << SDL_GetError();
+        return 1;
     }
 
-    // if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0)
-    // {
-    //     printf("SDL_mixer could not initialize! SDL_mixer Error: %s\n", Mix_GetError());
-    // }
+    // Initialize SDL_mixer
+    if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0)
+    {
+        printf("SDL_mixer could not initialize! SDL_mixer Error: %s\n", Mix_GetError());
+    }
 
-    // laserSound = loadSound("res/sounds/laser.ogg");
-    // explosionSound = loadSound("res/sounds/explosion.ogg");
-
-    SDL_Texture *shipSprite = loadSprite("sprites/mystery.png");
+    laserSound = loadSound("laser.ogg");
+    explosionSound = loadSound("explosion.ogg");
+    
+    SDL_Texture *shipSprite = loadSprite("mystery.png");
 
     SDL_Rect shipBounds = {SCREEN_WIDTH, 20, 29, 13};
 
@@ -563,7 +536,7 @@ int main()
 
     aliens = createAliens();
 
-    SDL_Texture *playerSprite = loadSprite("sprites/spaceship.png");
+    SDL_Texture *playerSprite = loadSprite("spaceship.png");
 
     SDL_Rect playerBounds = {SCREEN_WIDTH / 2, SCREEN_HEIGHT - 20, 22, 14};
 
@@ -574,7 +547,7 @@ int main()
     SDL_Rect structureBounds3 = {300, SCREEN_HEIGHT - 60, 28, 17};
     SDL_Rect structureBounds4 = {400, SCREEN_HEIGHT - 60, 28, 17};
 
-    SDL_Texture *structureSprite = loadSprite("sprites/structure.png");
+    SDL_Texture *structureSprite = loadSprite("structure.png");
 
     structures.push_back({structureBounds, structureSprite, 5, false});
     structures.push_back({structureBounds2, structureSprite, 5, false});
@@ -600,5 +573,5 @@ int main()
         render();
     }
 
-    quitGame();
+    return 0;
 }
