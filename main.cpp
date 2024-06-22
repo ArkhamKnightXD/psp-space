@@ -226,17 +226,11 @@ void handleEvents()
     }
 }
 
-bool hasCollision(SDL_Rect bounds, SDL_Rect bounds2)
-{
-    return bounds.x < bounds2.x + bounds2.w && bounds.x + bounds.w > bounds2.x &&
-           bounds.y < bounds2.y + bounds2.h && bounds.y + bounds.h > bounds2.y;
-}
-
 void checkCollisionBetweenStructureAndLaser(Laser &laser)
 {
     for (Structure &structure : structures)
     {
-        if (!structure.isDestroyed && hasCollision(structure.bounds, laser.bounds))
+        if (!structure.isDestroyed && SDL_HasIntersection(&structure.bounds, &laser.bounds))
         {
             laser.isDestroyed = true;
 
@@ -404,7 +398,7 @@ void update(float deltaTime)
 
     for (Laser &laser : playerLasers)
     {
-        if (!mysteryShip.isDestroyed && hasCollision(mysteryShip.bounds, laser.bounds))
+        if (!mysteryShip.isDestroyed && SDL_HasIntersection(&mysteryShip.bounds, &laser.bounds))
         {
             laser.isDestroyed = true;
         
@@ -425,7 +419,7 @@ void update(float deltaTime)
 
         for (Alien &alien : aliens)
         {
-            if (!alien.isDestroyed && hasCollision(alien.bounds, laser.bounds))
+            if (!alien.isDestroyed && SDL_HasIntersection(&alien.bounds, &laser.bounds))
             {
                 alien.isDestroyed = true;
                 laser.isDestroyed = true;
@@ -474,7 +468,7 @@ void update(float deltaTime)
 
     for (Laser &laser : alienLasers)
     {
-        if (player.lives > 0 && hasCollision(player.bounds, laser.bounds))
+        if (player.lives > 0 && SDL_HasIntersection(&player.bounds, &laser.bounds))
         {
             laser.isDestroyed = true;
 
@@ -623,7 +617,7 @@ int main(int argc, char *args[])
     }
 
     fontSquare = TTF_OpenFont("square_sans_serif_7.ttf", 16);
-    
+
     updateScore("Score: 0");
     updateLives("Lives: 2");
 
