@@ -15,6 +15,14 @@ SDL_GameController *controller = NULL;
 Mix_Chunk *laserSound = nullptr;
 Mix_Chunk *explosionSound = nullptr;
 
+SDL_Texture *scoreTexture = nullptr;
+SDL_Rect scoreBounds;
+
+SDL_Texture *liveTexture = nullptr;
+SDL_Rect liveBounds;
+
+SDL_Color fontColor = {255, 255, 255};
+
 typedef struct
 {
     SDL_Rect bounds;
@@ -282,6 +290,56 @@ void removingDestroyedElements()
     }
 }
 
+void updateScore(const char *text)
+{
+    TTF_Font *fontSquare = TTF_OpenFont("square_sans_serif_7.ttf", 16);
+    if (fontSquare == nullptr)
+    {
+        printf("TTF_OpenFont fontSquare: %s\n", TTF_GetError());
+    }
+
+    SDL_Surface *surface1 = TTF_RenderUTF8_Blended(fontSquare, text, fontColor);
+    if (surface1 == nullptr)
+    {
+        printf("TTF_OpenFont: %s\n", TTF_GetError());
+        SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Unable to load create title! SDL Error: %s\n", SDL_GetError());
+        exit(3);
+    }
+    SDL_DestroyTexture(scoreTexture);
+    scoreTexture = SDL_CreateTextureFromSurface(renderer, surface1);
+    if (scoreTexture == nullptr)
+    {
+        printf("TTF_OpenFont: %s\n", TTF_GetError());
+        SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Unable to load texture for image block.bmp! SDL Error: %s\n", SDL_GetError());
+    }
+    SDL_FreeSurface(surface1);
+}
+
+void updateLives(const char *text)
+{
+    TTF_Font *fontSquare = TTF_OpenFont("square_sans_serif_7.ttf", 16);
+    if (fontSquare == nullptr)
+    {
+        printf("TTF_OpenFont fontSquare: %s\n", TTF_GetError());
+    }
+
+    SDL_Surface *surface1 = TTF_RenderUTF8_Blended(fontSquare, text, fontColor);
+    if (surface1 == nullptr)
+    {
+        printf("TTF_OpenFont: %s\n", TTF_GetError());
+        SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Unable to load create title! SDL Error: %s\n", SDL_GetError());
+        exit(3);
+    }
+    SDL_DestroyTexture(liveTexture);
+    liveTexture = SDL_CreateTextureFromSurface(renderer, surface1);
+    if (liveTexture == nullptr)
+    {
+        printf("TTF_OpenFont: %s\n", TTF_GetError());
+        SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Unable to load texture for image block.bmp! SDL Error: %s\n", SDL_GetError());
+    }
+    SDL_FreeSurface(surface1);
+}
+
 void update(float deltaTime)
 {
 
@@ -352,6 +410,14 @@ void update(float deltaTime)
         
             player.score += mysteryShip.points;
 
+            std::string scoreString = std::to_string(player.score);
+
+            std::string finalScoreString = "score: " + scoreString;
+
+            char const *score = finalScoreString.c_str();
+
+            updateScore(score);
+
             mysteryShip.isDestroyed = true;
 
             Mix_PlayChannel(-1, explosionSound, 0);
@@ -365,6 +431,14 @@ void update(float deltaTime)
                 laser.isDestroyed = true;
 
                 player.score += alien.points;
+
+                std::string scoreString = std::to_string(player.score);
+
+                std::string finalScoreString = "score: " + scoreString;
+
+                char const *score = finalScoreString.c_str();
+
+                updateScore(score);
 
                 Mix_PlayChannel(-1, explosionSound, 0);
             }
@@ -406,6 +480,14 @@ void update(float deltaTime)
 
             player.lives--;
 
+            std::string livesString = std::to_string(player.lives);
+
+            std::string completeString = "lives: " + livesString;
+
+            char const *livesChar = completeString.c_str();
+
+            updateLives(livesChar);
+
             Mix_PlayChannel(-1, explosionSound, 0);
         }
 
@@ -427,6 +509,16 @@ void render()
 {
     SDL_SetRenderDrawColor(renderer, 29, 29, 27, 255);
     SDL_RenderClear(renderer);
+
+    SDL_QueryTexture(scoreTexture, NULL, NULL, &scoreBounds.w, &scoreBounds.h);
+    scoreBounds.x = 100;
+    scoreBounds.y = scoreBounds.h / 2;
+    SDL_RenderCopy(renderer, scoreTexture, NULL, &scoreBounds);
+
+    SDL_QueryTexture(liveTexture, NULL, NULL, &liveBounds.w, &liveBounds.h);
+    liveBounds.x = 300;
+    liveBounds.y = liveBounds.h / 2;
+    SDL_RenderCopy(renderer, liveTexture, NULL, &liveBounds);
 
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
 
@@ -524,6 +616,14 @@ int main(int argc, char *args[])
     {
         printf("SDL_mixer could not initialize! SDL_mixer Error: %s\n", Mix_GetError());
     }
+
+    if (TTF_Init() == -1)
+    {
+        return 1;
+    }
+
+    updateScore("Score: 0");
+    updateLives("Lives: 2");
 
     laserSound = loadSound("laser.ogg");
     explosionSound = loadSound("explosion.ogg");
