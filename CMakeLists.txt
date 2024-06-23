@@ -37,8 +37,8 @@ elseif(VITA)
 		NAME ${PROJECT_NAME}
 		FILE platform/vita/sce_sys sce_sys
 		FILE res/fonts/square_sans_serif_7.ttf square_sans_serif_7.ttf
-		FILE res/sounds/laser.ogg laser.wav
-		FILE res/sounds/explosion.ogg explosion.wav
+		FILE res/sounds/laser.wav laser.wav
+		FILE res/sounds/explosion.wav explosion.wav
 		FILE res/sprites/alien_1.png alien_1.png 
 		FILE res/sprites/alien_2.png alien_2.png 
 		FILE res/sprites/alien_3.png alien_3.png 
