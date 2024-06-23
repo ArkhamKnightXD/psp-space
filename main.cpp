@@ -411,8 +411,6 @@ void update(float deltaTime)
             mysteryShip.isDestroyed = true;
 
             Mix_PlayChannel(-1, explosionSound, 0);
-
-            break;
         }
 
         for (Alien &alien : aliens)
