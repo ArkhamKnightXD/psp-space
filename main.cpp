@@ -110,7 +110,7 @@ std::vector<Alien> createAliens()
 
     for (int row = 0; row < 5; row++)
     {
-        positionX = 50;
+        positionX = 75;
 
         switch (row)
         {
@@ -127,7 +127,7 @@ std::vector<Alien> createAliens()
                 actualSprite = alienSprite1;
         }
 
-        for (int columns = 0; columns < 13; columns++)
+        for (int columns = 0; columns < 11; columns++)
         {
             SDL_Rect alienBounds = {positionX, positionY, 20, 20};
 
@@ -202,7 +202,6 @@ Mix_Chunk *loadSound(const char *p_filePath)
 
 void quitGame()
 {
-
     SDL_GameControllerClose(controller);
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
@@ -211,15 +210,12 @@ void quitGame()
 
 void handleEvents()
 {
-
     SDL_Event event;
 
     while (SDL_PollEvent(&event))
     {
-
         if (event.type == SDL_QUIT)
         {
-
             quitGame();
             exit(0);
         }
@@ -242,13 +238,14 @@ void checkCollisionBetweenStructureAndLaser(Laser &laser)
             }
 
             Mix_PlayChannel(-1, explosionSound, 0);
+
+            break;
         }
     }
 }
 
 void removingDestroyedElements()
 {
-
     for (auto iterator = aliens.begin(); iterator != aliens.end();)
     {
         if (iterator->isDestroyed)
@@ -336,7 +333,6 @@ void updateLives(const char *text)
 
 void update(float deltaTime)
 {
-
     SDL_GameControllerUpdate();
 
     if (SDL_GameControllerGetButton(controller, SDL_CONTROLLER_BUTTON_DPAD_LEFT) && player.bounds.x > 0)
@@ -415,6 +411,8 @@ void update(float deltaTime)
             mysteryShip.isDestroyed = true;
 
             Mix_PlayChannel(-1, explosionSound, 0);
+
+            break;
         }
 
         for (Alien &alien : aliens)
@@ -435,6 +433,8 @@ void update(float deltaTime)
                 updateScore(score);
 
                 Mix_PlayChannel(-1, explosionSound, 0);
+
+                break;
             }
         }
 
@@ -605,7 +605,6 @@ int main(int argc, char *args[])
         return 1;
     }
 
-    // Initialize SDL_mixer
     if (Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 2048) < 0)
     {
         printf("SDL_mixer could not initialize! SDL_mixer Error: %s\n", Mix_GetError());
@@ -621,8 +620,8 @@ int main(int argc, char *args[])
     updateScore("Score: 0");
     updateLives("Lives: 2");
 
-    laserSound = loadSound("laser.ogg");
-    explosionSound = loadSound("explosion.ogg");
+    laserSound = loadSound("laser.wav");
+    explosionSound = loadSound("explosion.wav");
     
     SDL_Texture *shipSprite = loadSprite("mystery.png");
 

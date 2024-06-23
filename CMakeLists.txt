@@ -37,8 +37,8 @@ elseif(VITA)
 		NAME ${PROJECT_NAME}
 		FILE platform/vita/sce_sys sce_sys
 		FILE res/fonts/square_sans_serif_7.ttf square_sans_serif_7.ttf
-		FILE res/sounds/laser.ogg laser.ogg
-		FILE res/sounds/explosion.ogg explosion.ogg
+		FILE res/sounds/laser.ogg laser.wav
+		FILE res/sounds/explosion.ogg explosion.wav
 		FILE res/sprites/alien_1.png alien_1.png 
 		FILE res/sprites/alien_2.png alien_2.png 
 		FILE res/sprites/alien_3.png alien_3.png 
@@ -49,8 +49,8 @@ elseif(VITA)
 endif()
 
 file(COPY res/fonts/square_sans_serif_7.ttf DESTINATION ${CMAKE_BINARY_DIR})
-file(COPY res/sounds/laser.ogg DESTINATION ${CMAKE_BINARY_DIR})
-file(COPY res/sounds/explosion.ogg DESTINATION ${CMAKE_BINARY_DIR})
+file(COPY res/sounds/laser.wav DESTINATION ${CMAKE_BINARY_DIR})
+file(COPY res/sounds/explosion.wav DESTINATION ${CMAKE_BINARY_DIR})
 file(COPY res/sprites/alien_1.png DESTINATION ${CMAKE_BINARY_DIR})
 file(COPY res/sprites/alien_2.png DESTINATION ${CMAKE_BINARY_DIR})
 file(COPY res/sprites/alien_3.png DESTINATION ${CMAKE_BINARY_DIR})
