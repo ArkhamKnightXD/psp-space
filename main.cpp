@@ -283,52 +283,27 @@ void removingDestroyedElements()
     }
 }
 
-void updateScore(const char *text)
-{
-    if (fontSquare == nullptr)
-    {
+void updateTextureText(SDL_Texture *&texture, const char *text) {
+
+    if (fontSquare == nullptr) {
         printf("TTF_OpenFont fontSquare: %s\n", TTF_GetError());
     }
 
-    SDL_Surface *surface1 = TTF_RenderUTF8_Blended(fontSquare, text, fontColor);
-    if (surface1 == nullptr)
-    {
+    SDL_Surface *surface = TTF_RenderUTF8_Blended(fontSquare, text, fontColor);
+    if (surface == nullptr) {
         printf("TTF_OpenFont: %s\n", TTF_GetError());
-        SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Unable to load create title! SDL Error: %s\n", SDL_GetError());
+        SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Unable to create text surface! SDL Error: %s\n", SDL_GetError());
         exit(3);
     }
-    SDL_DestroyTexture(scoreTexture);
-    scoreTexture = SDL_CreateTextureFromSurface(renderer, surface1);
-    if (scoreTexture == nullptr)
-    {
-        printf("TTF_OpenFont: %s\n", TTF_GetError());
-        SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Unable to load texture for image block.bmp! SDL Error: %s\n", SDL_GetError());
-    }
-    SDL_FreeSurface(surface1);
-}
 
-void updateLives(const char *text)
-{
-    if (fontSquare == nullptr)
-    {
-        printf("TTF_OpenFont fontSquare: %s\n", TTF_GetError());
+    SDL_DestroyTexture(texture);
+    texture = SDL_CreateTextureFromSurface(renderer, surface);
+    if (texture == nullptr) {
+        printf("TTF_OpenFont: %s\n", TTF_GetError());
+        SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Unable to create texture from surface! SDL Error: %s\n", SDL_GetError());
     }
 
-    SDL_Surface *surface1 = TTF_RenderUTF8_Blended(fontSquare, text, fontColor);
-    if (surface1 == nullptr)
-    {
-        printf("TTF_OpenFont: %s\n", TTF_GetError());
-        SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Unable to load create title! SDL Error: %s\n", SDL_GetError());
-        exit(3);
-    }
-    SDL_DestroyTexture(liveTexture);
-    liveTexture = SDL_CreateTextureFromSurface(renderer, surface1);
-    if (liveTexture == nullptr)
-    {
-        printf("TTF_OpenFont: %s\n", TTF_GetError());
-        SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Unable to load texture for image block.bmp! SDL Error: %s\n", SDL_GetError());
-    }
-    SDL_FreeSurface(surface1);
+    SDL_FreeSurface(surface);
 }
 
 void update(float deltaTime)
@@ -406,7 +381,7 @@ void update(float deltaTime)
 
             char const *score = finalScoreString.c_str();
 
-            updateScore(score);
+            updateTextureText(scoreTexture, score);
 
             mysteryShip.isDestroyed = true;
 
@@ -428,7 +403,7 @@ void update(float deltaTime)
 
                 char const *score = finalScoreString.c_str();
 
-                updateScore(score);
+                updateTextureText(scoreTexture, score);
 
                 Mix_PlayChannel(-1, explosionSound, 0);
 
@@ -478,7 +453,7 @@ void update(float deltaTime)
 
             char const *livesChar = completeString.c_str();
 
-            updateLives(livesChar);
+            updateTextureText(liveTexture, livesChar);
 
             Mix_PlayChannel(-1, explosionSound, 0);
         }
@@ -615,8 +590,8 @@ int main(int argc, char *args[])
 
     fontSquare = TTF_OpenFont("square_sans_serif_7.ttf", 16);
 
-    updateScore("Score: 0");
-    updateLives("Lives: 2");
+    updateTextureText(scoreTexture, "Score: 0");
+    updateTextureText(liveTexture, "Lives: 2");
 
     laserSound = loadSound("laser.wav");
     explosionSound = loadSound("explosion.wav");
