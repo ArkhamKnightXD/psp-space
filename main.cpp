@@ -375,13 +375,9 @@ void update(float deltaTime)
         
             player.score += mysteryShip.points;
 
-            std::string scoreString = std::to_string(player.score);
+            std::string scoreString = "score: " + std::to_string(player.score);
 
-            std::string finalScoreString = "score: " + scoreString;
-
-            char const *score = finalScoreString.c_str();
-
-            updateTextureText(scoreTexture, score);
+            updateTextureText(scoreTexture, scoreString.c_str());
 
             mysteryShip.isDestroyed = true;
 
@@ -397,13 +393,9 @@ void update(float deltaTime)
 
                 player.score += alien.points;
 
-                std::string scoreString = std::to_string(player.score);
+                std::string scoreString = "score: " + std::to_string(player.score);
 
-                std::string finalScoreString = "score: " + scoreString;
-
-                char const *score = finalScoreString.c_str();
-
-                updateTextureText(scoreTexture, score);
+                updateTextureText(scoreTexture, scoreString.c_str());
 
                 Mix_PlayChannel(-1, explosionSound, 0);
 
@@ -447,13 +439,9 @@ void update(float deltaTime)
 
             player.lives--;
 
-            std::string livesString = std::to_string(player.lives);
+            std::string liveString = "lives: " + std::to_string(player.lives);
 
-            std::string completeString = "lives: " + livesString;
-
-            char const *livesChar = completeString.c_str();
-
-            updateTextureText(liveTexture, livesChar);
+            updateTextureText(liveTexture, liveString.c_str());
 
             Mix_PlayChannel(-1, explosionSound, 0);
         }
