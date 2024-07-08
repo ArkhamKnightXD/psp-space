@@ -106,7 +106,6 @@ typedef struct
 std::vector<Alien> aliens;
 
 bool shouldChangeVelocity = false;
-bool shouldAliensGoDown = false;
 
 std::vector<Alien> createAliens()
 {
@@ -212,7 +211,6 @@ Mix_Music *loadMusic(const char *p_filePath)
     return music;
 }
 
-
 void quitGame()
 {
     SDL_DestroyTexture(shipSprite);
@@ -225,7 +223,6 @@ void quitGame()
     SDL_DestroyTexture(liveTexture);
     SDL_DestroyTexture(pauseTexture);
 
-    // Close SDL_image
     IMG_Quit();
 
     Mix_FreeChunk(laserSound);
@@ -400,7 +397,6 @@ void update(float deltaTime)
         }
     }
 
-
     for (Laser &laser : playerLasers)
     {
         laser.bounds.y -= 200 * deltaTime;
@@ -464,7 +460,7 @@ void update(float deltaTime)
         Mix_PlayChannel(-1, laserSound, 0);
     }
 
-        for (Laser &laser : alienLasers)
+    for (Laser &laser : alienLasers)
     {
         laser.bounds.y += 200 * deltaTime;
 
@@ -571,27 +567,16 @@ void render()
 
 int main(int argc, char *args[])
 {
-    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_GAMECONTROLLER) < 0)
-    {
-        std::cout << "SDL crashed. Error: " << SDL_GetError();
-        return 1;
+    if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_GAMECONTROLLER) < 0) {
+        return -1;
     }
 
-    window = SDL_CreateWindow("My Window", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
-    if (window == nullptr)
-    {
-        std::cerr << "Failed to create window: " << SDL_GetError() << std::endl;
-        SDL_Quit();
-        return 1;
+    if ((window = SDL_CreateWindow("space", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN)) == NULL) {
+        return -1;
     }
 
-    renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
-    if (renderer == nullptr)
-    {
-        std::cerr << "Failed to create renderer: " << SDL_GetError() << std::endl;
-        SDL_DestroyWindow(window);
-        SDL_Quit();
-        return 1;
+    if ((renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC)) == NULL) {
+        return -1;
     }
 
     if (SDL_NumJoysticks() < 1) {
