@@ -39,6 +39,7 @@ elseif(VITA)
 		FILE res/fonts/square_sans_serif_7.ttf square_sans_serif_7.ttf
 		FILE res/sounds/laser.wav laser.wav
 		FILE res/sounds/explosion.wav explosion.wav
+		FILE res/sounds/magic.wav magic.wav
 		FILE res/music/music.wav music.wav
 		FILE res/sprites/alien_1.png alien_1.png 
 		FILE res/sprites/alien_2.png alien_2.png 
@@ -52,6 +53,7 @@ endif()
 file(COPY res/fonts/square_sans_serif_7.ttf DESTINATION ${CMAKE_BINARY_DIR})
 file(COPY res/sounds/laser.wav DESTINATION ${CMAKE_BINARY_DIR})
 file(COPY res/sounds/explosion.wav DESTINATION ${CMAKE_BINARY_DIR})
+file(COPY res/sounds/magic.wav DESTINATION ${CMAKE_BINARY_DIR})
 file(COPY res/music/music.wav DESTINATION ${CMAKE_BINARY_DIR})
 file(COPY res/sprites/alien_1.png DESTINATION ${CMAKE_BINARY_DIR})
 file(COPY res/sprites/alien_2.png DESTINATION ${CMAKE_BINARY_DIR})
