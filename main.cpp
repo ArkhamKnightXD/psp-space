@@ -32,12 +32,18 @@ SDL_Rect pauseBounds;
 
 SDL_Color fontColor = {255, 255, 255};
 
-SDL_Texture *shipSprite = nullptr;
-SDL_Texture *playerSprite = nullptr;
-SDL_Texture *alienSprite1 = nullptr;
-SDL_Texture *alienSprite2 = nullptr;
-SDL_Texture *alienSprite3 = nullptr;
-SDL_Texture *structureSprite = nullptr;
+typedef struct
+{
+    SDL_Texture *texture;
+    SDL_Rect textureBounds;
+} Sprite;
+
+Sprite shipSprite;
+Sprite playerSprite;
+Sprite alienSprite1;
+Sprite alienSprite2;
+Sprite alienSprite3;
+Sprite structureSprite;
 
 typedef struct
 {
@@ -53,8 +59,7 @@ float lastTimeAliensShoot;
 
 typedef struct
 {
-    SDL_Rect bounds;
-    SDL_Texture *sprite;
+    Sprite sprite;
     int lives;
     int speed;
     int score;
@@ -65,8 +70,7 @@ Player player;
 typedef struct
 {
     float x;
-    SDL_Rect bounds;
-    SDL_Texture *sprite;
+    Sprite sprite;
     int points;
     int velocityX;
     bool shouldMove;
@@ -79,25 +83,33 @@ float lastTimeMysteryShipSpawn;
 
 typedef struct
 {
-    SDL_Rect bounds;
-    SDL_Texture *sprite;
+    Sprite sprite;
     int lives;
     bool isDestroyed;
 } Structure;
 
 std::vector<Structure> structures;
 
-SDL_Texture *loadSprite(const char *file)
+Sprite loadSprite(const char *file, int positionX, int positionY)
 {
+    SDL_Rect textureBounds = {positionX, positionY, 0, 0};
+
     SDL_Texture *texture = IMG_LoadTexture(renderer, file);
-    return texture;
+
+    if (texture != nullptr)
+    {
+        SDL_QueryTexture(texture, NULL, NULL, &textureBounds.w, &textureBounds.h);
+    }
+
+    Sprite sprite = {texture, textureBounds};
+
+    return sprite;
 }
 
 typedef struct
 {
     float x;
-    SDL_Rect bounds;
-    SDL_Texture *sprite;
+    Sprite sprite;
     int points;
     int velocity;
     bool isDestroyed;
@@ -109,9 +121,9 @@ bool shouldChangeVelocity = false;
 
 std::vector<Alien> createAliens()
 {
-    alienSprite1 = loadSprite("alien_1.png");
-    alienSprite2 = loadSprite("alien_2.png");
-    alienSprite3 = loadSprite("alien_3.png");
+    alienSprite1 = loadSprite("alien_1.png", 0, 0);
+    alienSprite2 = loadSprite("alien_2.png", 0, 0);
+    alienSprite3 = loadSprite("alien_3.png", 0, 0);
 
     std::vector<Alien> aliens;
 
@@ -119,7 +131,7 @@ std::vector<Alien> createAliens()
     int positionY = 25;
     int alienPoints = 8;
 
-    SDL_Texture *actualSprite;
+    Sprite actualSprite;
 
     for (int row = 0; row < 5; row++)
     {
@@ -142,9 +154,10 @@ std::vector<Alien> createAliens()
 
         for (int columns = 0; columns < 11; columns++)
         {
-            SDL_Rect alienBounds = {positionX, positionY, 20, 20};
+            actualSprite.textureBounds.x = positionX;
+            actualSprite.textureBounds.y = positionY;
 
-            Alien actualAlien = {(float)positionX, alienBounds, actualSprite, alienPoints, 50, false};
+            Alien actualAlien = {(float)positionX, actualSprite, alienPoints, 50, false};
 
             aliens.push_back(actualAlien);
             positionX += 30;
@@ -162,11 +175,11 @@ void aliensMovement(float deltaTime)
     for (Alien &alien : aliens)
     {
         alien.x += alien.velocity * deltaTime;
-        alien.bounds.x = alien.x;
+        alien.sprite.textureBounds.x = alien.x;
 
-        float alienPosition = alien.bounds.x + alien.bounds.w;
+        float alienPosition = alien.sprite.textureBounds.x + alien.sprite.textureBounds.w;
 
-        if ((!shouldChangeVelocity && alienPosition > SCREEN_WIDTH) || alienPosition < alien.bounds.w)
+        if ((!shouldChangeVelocity && alienPosition > SCREEN_WIDTH) || alienPosition < alien.sprite.textureBounds.w)
         {
             shouldChangeVelocity = true;
             break;
@@ -178,7 +191,7 @@ void aliensMovement(float deltaTime)
         for (Alien &alien : aliens)
         {
             alien.velocity *= -1;
-            alien.bounds.y += 5;
+            alien.sprite.textureBounds.y += 5;
         }
 
         shouldChangeVelocity = false;
@@ -213,12 +226,12 @@ Mix_Music *loadMusic(const char *p_filePath)
 
 void quitGame()
 {
-    SDL_DestroyTexture(shipSprite);
-    SDL_DestroyTexture(playerSprite);
-    SDL_DestroyTexture(structureSprite);
-    SDL_DestroyTexture(alienSprite1);
-    SDL_DestroyTexture(alienSprite2);
-    SDL_DestroyTexture(alienSprite3);
+    SDL_DestroyTexture(shipSprite.texture);
+    SDL_DestroyTexture(playerSprite.texture);
+    SDL_DestroyTexture(structureSprite.texture);
+    SDL_DestroyTexture(alienSprite1.texture);
+    SDL_DestroyTexture(alienSprite2.texture);
+    SDL_DestroyTexture(alienSprite3.texture);
     SDL_DestroyTexture(scoreTexture);
     SDL_DestroyTexture(liveTexture);
     SDL_DestroyTexture(pauseTexture);
@@ -265,7 +278,7 @@ void checkCollisionBetweenStructureAndLaser(Laser &laser)
 {
     for (Structure &structure : structures)
     {
-        if (!structure.isDestroyed && SDL_HasIntersection(&structure.bounds, &laser.bounds))
+        if (!structure.isDestroyed && SDL_HasIntersection(&structure.sprite.textureBounds, &laser.bounds))
         {
             laser.isDestroyed = true;
 
@@ -347,14 +360,14 @@ void updateTextureText(SDL_Texture *&texture, const char *text) {
 
 void update(float deltaTime)
 {
-    if (SDL_GameControllerGetButton(controller, SDL_CONTROLLER_BUTTON_DPAD_LEFT) && player.bounds.x > 0)
+    if (SDL_GameControllerGetButton(controller, SDL_CONTROLLER_BUTTON_DPAD_LEFT) && player.sprite.textureBounds.x > 0)
     {
-        player.bounds.x -= player.speed * deltaTime;
+        player.sprite.textureBounds.x -= player.speed * deltaTime;
     }
 
-    else if (SDL_GameControllerGetButton(controller, SDL_CONTROLLER_BUTTON_DPAD_RIGHT) && player.bounds.x < SCREEN_WIDTH - player.bounds.w)
+    else if (SDL_GameControllerGetButton(controller, SDL_CONTROLLER_BUTTON_DPAD_RIGHT) && player.sprite.textureBounds.x < SCREEN_WIDTH - player.sprite.textureBounds.w)
     {
-        player.bounds.x += player.speed * deltaTime;
+        player.sprite.textureBounds.x += player.speed * deltaTime;
     }
 
     if (!mysteryShip.shouldMove)
@@ -371,14 +384,14 @@ void update(float deltaTime)
 
     if (mysteryShip.shouldMove)
     {
-        if (mysteryShip.bounds.x > SCREEN_WIDTH + mysteryShip.bounds.w || mysteryShip.bounds.x < -80)
+        if (mysteryShip.sprite.textureBounds.x > SCREEN_WIDTH + mysteryShip.sprite.textureBounds.w || mysteryShip.sprite.textureBounds.x < -80)
         {
             mysteryShip.velocityX *= -1;
             mysteryShip.shouldMove = false;
         }
 
         mysteryShip.x += mysteryShip.velocityX * deltaTime;
-        mysteryShip.bounds.x = mysteryShip.x;
+        mysteryShip.sprite.textureBounds.x = mysteryShip.x;
     }
 
     if (SDL_GameControllerGetButton(controller, SDL_CONTROLLER_BUTTON_A))
@@ -387,7 +400,7 @@ void update(float deltaTime)
 
         if (lastTimePlayerShoot >= 0.35)
         {
-            SDL_Rect laserBounds = {player.bounds.x + 10, player.bounds.y, 2, 8};
+            SDL_Rect laserBounds = {player.sprite.textureBounds.x + 10, player.sprite.textureBounds.y - player.sprite.textureBounds.h, 2, 8};
 
             playerLasers.push_back({laserBounds, false});
 
@@ -404,7 +417,7 @@ void update(float deltaTime)
         if (laser.bounds.y < 0)
             laser.isDestroyed = true;
 
-        if (!mysteryShip.isDestroyed && SDL_HasIntersection(&mysteryShip.bounds, &laser.bounds))
+        if (!mysteryShip.isDestroyed && SDL_HasIntersection(&mysteryShip.sprite.textureBounds, &laser.bounds))
         {
             laser.isDestroyed = true;
 
@@ -415,7 +428,7 @@ void update(float deltaTime)
             updateTextureText(scoreTexture, scoreString.c_str());
 
             mysteryShip.isDestroyed = true;
-            
+
             Mix_PlayChannel(-1, explosionSound, 0);
 
             break;
@@ -423,7 +436,7 @@ void update(float deltaTime)
 
         for (Alien &alien : aliens)
         {
-            if (!alien.isDestroyed && SDL_HasIntersection(&alien.bounds, &laser.bounds))
+            if (!alien.isDestroyed && SDL_HasIntersection(&alien.sprite.textureBounds, &laser.bounds))
             {
                 alien.isDestroyed = true;
                 laser.isDestroyed = true;
@@ -443,6 +456,7 @@ void update(float deltaTime)
         checkCollisionBetweenStructureAndLaser(laser);
     }
 
+
     lastTimeAliensShoot += deltaTime;
 
     if (aliens.size() > 0 && lastTimeAliensShoot >= 0.6)
@@ -451,7 +465,7 @@ void update(float deltaTime)
 
         Alien alienShooter = aliens[randomAlienIndex];
 
-        SDL_Rect laserBounds = {alienShooter.bounds.x + 10, alienShooter.bounds.y + alienShooter.bounds.h, 2, 8};
+        SDL_Rect laserBounds = {alienShooter.sprite.textureBounds.x + 10, alienShooter.sprite.textureBounds.y + alienShooter.sprite.textureBounds.h, 2, 8};
 
         alienLasers.push_back({laserBounds, false});
 
@@ -467,7 +481,7 @@ void update(float deltaTime)
         if (laser.bounds.y > SCREEN_HEIGHT)
             laser.isDestroyed = true;
 
-        if (player.lives > 0 && SDL_HasIntersection(&player.bounds, &laser.bounds))
+        if (player.lives > 0 && SDL_HasIntersection(&player.sprite.textureBounds, &laser.bounds))
         {
             laser.isDestroyed = true;
 
@@ -490,10 +504,9 @@ void update(float deltaTime)
     removeDestroyedElements();
 }
 
-void renderSprite(SDL_Texture *sprite, SDL_Rect spriteBounds)
+void renderSprite(Sprite sprite)
 {
-    SDL_QueryTexture(sprite, NULL, NULL, &spriteBounds.w, &spriteBounds.h);
-    SDL_RenderCopy(renderer, sprite, NULL, &spriteBounds);
+    SDL_RenderCopy(renderer, sprite.texture, NULL, &sprite.textureBounds);
 }
 
 void render()
@@ -501,21 +514,12 @@ void render()
     SDL_SetRenderDrawColor(renderer, 29, 29, 27, 255);
     SDL_RenderClear(renderer);
 
-    SDL_QueryTexture(scoreTexture, NULL, NULL, &scoreBounds.w, &scoreBounds.h);
-    scoreBounds.x = 100;
-    scoreBounds.y = scoreBounds.h / 2;
     SDL_RenderCopy(renderer, scoreTexture, NULL, &scoreBounds);
 
-    SDL_QueryTexture(liveTexture, NULL, NULL, &liveBounds.w, &liveBounds.h);
-    liveBounds.x = 300;
-    liveBounds.y = liveBounds.h / 2;
     SDL_RenderCopy(renderer, liveTexture, NULL, &liveBounds);
 
     if (isGamePaused)
     {
-        SDL_QueryTexture(pauseTexture, NULL, NULL, &pauseBounds.w, &pauseBounds.h);
-        pauseBounds.x = 175;
-        pauseBounds.y = pauseBounds.h / 2 + 10;
         SDL_RenderCopy(renderer, pauseTexture, NULL, &pauseBounds);
     }
 
@@ -523,14 +527,14 @@ void render()
 
     if (!mysteryShip.isDestroyed)
     {
-        renderSprite(mysteryShip.sprite, mysteryShip.bounds);
+        renderSprite(mysteryShip.sprite);
     }
 
     for (Alien alien : aliens)
     {
         if (!alien.isDestroyed)
         {
-            renderSprite(alien.sprite, alien.bounds);
+            renderSprite(alien.sprite);
         }
     }
 
@@ -556,11 +560,11 @@ void render()
     {
         if (!structure.isDestroyed)
         {
-            renderSprite(structure.sprite, structure.bounds);
+            renderSprite(structure.sprite);
         }
     }
 
-    renderSprite(player.sprite, player.bounds);
+    renderSprite(player.sprite);
 
     SDL_RenderPresent(renderer);
 }
@@ -612,8 +616,22 @@ int main(int argc, char *args[])
     fontSquare = TTF_OpenFont("square_sans_serif_7.ttf", 16);
 
     updateTextureText(scoreTexture, "Score: 0");
+
+    SDL_QueryTexture(scoreTexture, NULL, NULL, &scoreBounds.w, &scoreBounds.h);
+    scoreBounds.x = 100;
+    scoreBounds.y = scoreBounds.h / 2;
+
     updateTextureText(liveTexture, "Lives: 2");
+
+    SDL_QueryTexture(liveTexture, NULL, NULL, &liveBounds.w, &liveBounds.h);
+    liveBounds.x = 300;
+    liveBounds.y = liveBounds.h / 2;
+
     updateTextureText(pauseTexture, "Game Paused");
+
+    SDL_QueryTexture(pauseTexture, NULL, NULL, &pauseBounds.w, &pauseBounds.h);
+    pauseBounds.x = 175;
+    pauseBounds.y = pauseBounds.h / 2 + 10;
 
     laserSound = loadSound("laser.wav");
     pauseSound = loadSound("magic.wav");
@@ -628,31 +646,27 @@ int main(int argc, char *args[])
 
     Mix_PlayMusic(music, -1);
     
-    shipSprite = loadSprite("mystery.png");
+    shipSprite = loadSprite("mystery.png", SCREEN_WIDTH, 20);
 
-    SDL_Rect shipBounds = {SCREEN_WIDTH, 20, 29, 13};
-
-    mysteryShip = {SCREEN_WIDTH, shipBounds, shipSprite, 50, -100, false, false};
+    mysteryShip = {SCREEN_WIDTH, shipSprite, 50, -100, false, false};
 
     aliens = createAliens();
 
-    playerSprite = loadSprite("spaceship.png");
+    playerSprite = loadSprite("spaceship.png", SCREEN_WIDTH / 2, SCREEN_HEIGHT - 20);
 
-    SDL_Rect playerBounds = {SCREEN_WIDTH / 2, SCREEN_HEIGHT - 20, 22, 14};
-
-    player = {playerBounds, playerSprite, 2, 300, 0};
+    player = {playerSprite, 2, 300, 0};
 
     SDL_Rect structureBounds = {60, SCREEN_HEIGHT - 60, 28, 17};
     SDL_Rect structureBounds2 = {175, SCREEN_HEIGHT - 60, 28, 17};
     SDL_Rect structureBounds3 = {300, SCREEN_HEIGHT - 60, 28, 17};
     SDL_Rect structureBounds4 = {400, SCREEN_HEIGHT - 60, 28, 17};
 
-    structureSprite = loadSprite("structure.png");
+    structureSprite = loadSprite("structure.png", 60, SCREEN_HEIGHT - 60);
 
-    structures.push_back({structureBounds, structureSprite, 5, false});
-    structures.push_back({structureBounds2, structureSprite, 5, false});
-    structures.push_back({structureBounds3, structureSprite, 5, false});
-    structures.push_back({structureBounds4, structureSprite, 5, false});
+    structures.push_back({{structureSprite.texture, structureBounds}, 5, false});
+    structures.push_back({{structureSprite.texture, structureBounds2}, 5, false});
+    structures.push_back({{structureSprite.texture, structureBounds3}, 5, false});
+    structures.push_back({{structureSprite.texture, structureBounds4}, 5, false});
 
     Uint32 previousFrameTime = SDL_GetTicks();
     Uint32 currentFrameTime = previousFrameTime;
