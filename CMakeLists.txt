@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.10)
 
 project(psp-space)
 
-add_executable(${PROJECT_NAME} main.cpp)
+add_executable(${PROJECT_NAME} main.cpp sdl_starter.cpp sdl_assets_loader.cpp)
 
 include(FindPkgConfig)
 pkg_search_module(SDL2 REQUIRED sdl2)
