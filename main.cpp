@@ -102,6 +102,9 @@ std::vector<Alien> createAliens()
 
     std::vector<Alien> aliens;
 
+    //5*11 Aliens
+    aliens.reserve(55);
+
     int positionX;
     int positionY = 25;
     int alienPoints = 8;
