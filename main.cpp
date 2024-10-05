@@ -464,7 +464,7 @@ void render()
         renderSprite(mysteryShip.sprite);
     }
 
-    for (Alien alien : aliens)
+    for (Alien &alien : aliens)
     {
         if (!alien.isDestroyed)
         {
@@ -474,7 +474,7 @@ void render()
 
     SDL_SetRenderDrawColor(renderer, 243, 216, 63, 255);
 
-    for (Laser laser : alienLasers)
+    for (Laser &laser : alienLasers)
     {
         if (!laser.isDestroyed)
         {
@@ -482,7 +482,7 @@ void render()
         }
     }
 
-    for (Laser laser : playerLasers)
+    for (Laser &laser : playerLasers)
     {
         if (!laser.isDestroyed)
         {
@@ -490,7 +490,7 @@ void render()
         }
     }
 
-    for (Structure structure : structures)
+    for (Structure &structure : structures)
     {
         if (!structure.isDestroyed)
         {
