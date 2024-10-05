@@ -432,7 +432,7 @@ void update(float deltaTime)
     removeDestroyedElements();
 }
 
-void renderSprite(Sprite sprite)
+void renderSprite(Sprite &sprite)
 {
     SDL_RenderCopy(renderer, sprite.texture, NULL, &sprite.textureBounds);
 }
